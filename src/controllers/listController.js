@@ -19,17 +19,13 @@ const fullList = async (req, res) => {
 };
 
 const createTask = async (req, res) => {
-  const { title, description } = req.body;
-  if (!title || !description) {
-    return res
-      .status(400)
-      .json({ message: 'Título e Descrição são obrigatórios.' });
-  }
+  const { title, description, status } = req.body;
+
   try {
     const date = new Date().toLocaleString();
     const result = await pool.query(
-      'INSERT INTO tasks (title, description, date) VALUES ($1, $2, $3) RETURNING *',
-      [title, description, date]
+      'INSERT INTO tasks (title, description, date, status) VALUES ($1, $2, $3, $4) RETURNING *',
+      [title, description, date, status || 'Pendente']
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -39,11 +35,11 @@ const createTask = async (req, res) => {
 
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { description } = req.body;
+  const { title, description } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE tasks SET description = $1 WHERE id = $2 RETURNING *',
-      [description, id]
+      'UPDATE tasks SET title = $1, description = $2 WHERE id = $3 RETURNING *',
+      [title, description, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'A tarefa não foi encontrada.' });
